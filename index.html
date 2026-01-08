@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tutu Prompt</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d6efd">
+    <link rel="apple-touch-icon" href="icons/icon.png">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body { background-color: #f8f9fa; padding-bottom: 80px; }
+        .result-box { background: #e9ecef; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.9rem; min-height: 100px; }
+        .fab-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+        .app-header { background: #fff; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    </style>
+    
+    <script src="presets.js"></script>
+</head>
+<body>
+
+<div class="app-header sticky-top">
+    <h5 class="m-0 fw-bold">🍌 TutuPrompt Builder</h5>
+</div>
+
+<div class="container">
+    <div class="mb-3">
+        <label class="form-label text-secondary small">风格模板 (Preset)</label>
+        <select id="presetSelect" class="form-select shadow-sm" onchange="generate()">
+            <option value="none">-- 纯净模式 (不使用模板) --</option>
+            </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label text-secondary small">画面描述 (Subject/Action)</label>
+        <textarea id="userInput" class="form-control shadow-sm" rows="3" placeholder="例：一个神秘的女孩在哥特式教堂里..." oninput="generate()"></textarea>
+    </div>
+
+    <div class="card mb-3 border-0 shadow-sm">
+        <div class="card-body py-2">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="qualityToggle" checked onchange="generate()">
+                <label class="form-check-label small">TutuBanana 画质增强 (8K, UE5, PBR)</label>
+            </div>
+            <div class="form-check form-switch mt-2">
+                <input class="form-check-input" type="checkbox" id="arToggle" checked onchange="generate()">
+                <label class="form-check-label small">添加比例参数 (--ar 16:9)</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label text-secondary small">生成结果 (Preview)</label>
+        <div id="finalOutput" class="result-box text-break">等待输入...</div>
+    </div>
+</div>
+
+<div class="fab-container">
+    <button class="btn btn-primary rounded-pill px-4 py-2 shadow-lg fw-bold" onclick="copyPrompt()">
+        📋 复制并打开 Gemini
+    </button>
+</div>
+
+<script>
+    // TutuBanana 核心画质词 (Hardcoded Logic)
+    const QUALITY_TAGS = ", (masterpiece:1.2), best quality, 8k resolution, Unreal Engine 5 rendering, Ray tracing, Physically-based rendering (PBR), detailed textures, cinematic lighting";
+
+    // 初始化加载
+    window.onload = function() {
+        // 1. 注册 Service Worker (PWA)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+
+        // 2. 渲染模板列表
+        const select = document.getElementById('presetSelect');
+        // 按分类分组渲染 (简单实现)
+        PRESETS_DB.forEach((p, index) => {
+            let option = document.createElement('option');
+            option.value = index;
+            option.text = `[${p.category}] ${p.name}`;
+            select.add(option);
+        });
+    };
+
+    // 核心拼接逻辑
+    function generate() {
+        let text = document.getElementById('userInput').value.trim();
+        let presetIdx = document.getElementById('presetSelect').value;
+        let useQuality = document.getElementById('qualityToggle').checked;
+        let useAR = document.getElementById('arToggle').checked;
+
+        let final = text;
+
+        // 模板替换逻辑
+        if (presetIdx !== "none") {
+            let template = PRESETS_DB[presetIdx].content;
+            if (template.includes("{prompt}")) {
+                // 如果有占位符，替换它
+                final = template.replace("{prompt}", text);
+            } else {
+                // 如果没有占位符，直接追加
+                final = template + ", " + text;
+            }
+        }
+
+        // 追加画质词
+        if (useQuality && final) final += QUALITY_TAGS;
+        
+        // 追加比例
+        if (useAR && final) final += " --ar 16:9";
+
+        document.getElementById('finalOutput').innerText = final || "等待输入...";
+    }
+
+    // 复制功能
+    function copyPrompt() {
+        const text = document.getElementById('finalOutput').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert("✅ 已复制！请切换应用。");
+            // 尝试 Android Intent 跳转 (视系统兼容性而定)
+            // window.location.href = "intent://#Intent;scheme=googleapp;package=com.google.android.apps.bard;end";
+        }).catch(err => {
+            alert("❌ 复制失败，请手动长按文本框复制。");
+        });
+    }
+</script>
+</body>
+</html>

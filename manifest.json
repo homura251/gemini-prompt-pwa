@@ -1,0 +1,15 @@
+{
+    "name": "Tutu Prompt Builder",
+    "short_name": "TutuPrompt",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#f8f9fa",
+    "theme_color": "#0d6efd",
+    "icons": [
+        {
+            "src": "icons/icon.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
