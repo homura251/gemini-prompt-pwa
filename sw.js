@@ -1,10 +1,11 @@
-const CACHE_NAME = 'tutu-pwa-v1';
+const CACHE_NAME = 'tutu-pwa-v2';
 const ASSETS = [
     './',
     './index.html',
     './manifest.json',
     './presets.js',
-    './icons/icon.png',
+    './icons/icon-192.png',
+    './icons/icon-512.png',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css' 
 ];
 
